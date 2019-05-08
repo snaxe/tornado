@@ -17,7 +17,7 @@ class ClassRoom(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(20), nullable=False)
     teacher_id = Column(Integer, ForeignKey('test_schema.teachers.id'))
-    teacher = relationship("Teacher", back_populates="tclass",lazy='select')
+    teacher = relationship("Teacher", back_populates="classes",lazy='select')
     students = relationship("Student",secondary=association_table,back_populates="classroom")
 
 

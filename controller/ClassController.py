@@ -13,5 +13,5 @@ class ClassController(BaseController):
         with self.make_session() as session:
             classroom = yield as_future(session.query(ClassRoom).filter(ClassRoom.name == classname).all)
             if classroom:
-                self.send_response(json.dumps(classroom,cls=AlchemyEncoder))
+                self.send_response(json.dumps(classroom,cls=AlchemyEncoder,options={"expand":["students","teacher"]}))
 

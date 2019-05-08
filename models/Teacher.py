@@ -9,7 +9,7 @@ class Teacher(Base):
     name = Column(String(20), nullable=False)
     email = Column('email', String(60))
     contact = Column('contact', String(15))
-    tclass = relationship("ClassRoom",  uselist=False, back_populates="teacher")
+    classes = relationship("ClassRoom", back_populates="teacher")
 
     def __str__(self):
         return f"{self.id} {self.name} {self.email} {self.contact}"

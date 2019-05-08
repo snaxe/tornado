@@ -1,28 +1,35 @@
 import json
 from sqlalchemy.ext.declarative import DeclarativeMeta
-
+from sqlalchemy.orm.collections import InstrumentedList
 class AlchemyEncoder(json.JSONEncoder):
+    def __init__(self, options=None, **kwargs):
+        super(AlchemyEncoder, self).__init__(**kwargs)
+        self.options = options
+
     def default(self, obj):
-        fields=None
+        fields = None
         if isinstance(obj.__class__, DeclarativeMeta):
-            isvisited=False
-            try:
-                isvisited=obj.__getattribute__("visited")
-            except:
-                isvisited=False
-            # an SQLAlchemy class
-            if isvisited!=True:
+            if '_visited' not in dir(obj) or not obj._visited:
                 fields={}
-                """Creates issue for recursive nesting. Need to create mp instead for parent-child relation visited field"""
-                obj.visited = True
-                for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata' and x!='visited']:
+                obj._visited = True
+                for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata']:
                     data = obj.__getattribute__(field)
-                    try:
-                        # this will fail on non-encodable values, like other classes
-                        fields[field] = json.loads(json.dumps(data,cls=AlchemyEncoder))
-                    except TypeError:
-                        fields[field] = None
-                # a json-encodable dict
+                    if not isinstance(data.__class__, DeclarativeMeta) and not issubclass(data.__class__,InstrumentedList):
+                        try:
+                            fields[field] = json.loads(json.dumps(data))
+                        except TypeError:
+                            fields[field] = None
+                    elif field not in self.options['expand']:
+                        try:
+                            fields[field] = None
+                        except TypeError:
+                            fields[field] = None
+                    else:
+                        try:
+                            fields[field] = json.loads(json.dumps(data,cls=AlchemyEncoder,options=self.options))
+                        except TypeError:
+                            fields[field] = None
+
             return fields
 
         return json.JSONEncoder.default(self, obj)

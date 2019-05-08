@@ -1,11 +1,11 @@
-from tornado.web import RequestHandler
+import json
+
 from tornado.gen import coroutine
 from tornado_sqlalchemy import as_future
-from models.Student import Student
-import json
-from .BaseController import BaseController
-from models.Encoder import AlchemyEncoder
 
+from models.Encoder import AlchemyEncoder
+from models.Student import Student
+from .BaseController import BaseController
 
 
 class StudentsController(BaseController):
@@ -17,5 +17,5 @@ class StudentsController(BaseController):
             student = yield as_future(session.query(Student).filter(Student.id == studentId).all)
             print(student)
             if student:
-                self.send_response(json.dumps(student,cls=AlchemyEncoder))
+                self.send_response(json.dumps(student,cls=AlchemyEncoder,options={"expand":["classroom","teacher"]}))
 
